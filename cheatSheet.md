@@ -128,4 +128,15 @@ A **block is a component, or section, of a page that can stand alone and functio
 .proj-prev { color: #fff; margin-bottom: .25rem; }
 ```
 Now remember that text for the project title that wouldn’t work on its own? Since it **doesn’t function independently**, but rather forms an **integral part** of the block, it's an **element** of the **block**.
-![alt text](img/block-element.jpg)
+
+![fig 1](img/block-element.jpg)
+
+The **name of an element should identify its parent block, followed by double underscores** (also known as “dunders”), and then the element’s purpose. Since it's the heading for the project preview, we'll name it  `.proj-prev__heading`  and assign the following rule set:
+```css
+.proj-prev__heading {
+    font-size: 4rem;
+    padding-left: 2.5rem;
+    margin: 0;
+    line-height: 6rem;
+}
+```
