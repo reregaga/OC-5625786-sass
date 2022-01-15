@@ -128,4 +128,4 @@ A **block is a component, or section, of a page that can stand alone and functio
 .proj-prev { color: #fff; margin-bottom: .25rem; }
 ```
 Now remember that text for the project title that wouldn’t work on its own? Since it **doesn’t function independently**, but rather forms an **integral part** of the block, it's an **element** of the **block**.
-![alt text](../img/block-element.jpg)
+![alt text](img/block-element.jpg)
