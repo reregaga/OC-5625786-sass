@@ -676,3 +676,200 @@ Now the function is done! Let’s plug it into our mixin, like when you call one
   @return $pastel;
 }
 ```
+
+# 7-1 Structure of files
+Create the following seven directories within our sass directory, each of which represents a category of Sass code:
+- Base
+- Utils
+- Layout
+- Components
+- Pages
+- Themes
+- Vendors
+
+- The **base/** directory contains the files that define the foundation of your site, such as the typography and norms you want applied site-wide, like box-sizing.
+- **utils/** is where you store **variables, functions, mixins, and %placeholders** for extensions (if you use them).
+- **layouts/** is where you store BEM blocks which contain things that can be reused, such as a form or header for large layouts.
+- **components/** is where you store BEM blocks that are more self-contained, such as buttons.
+- **pages/**  contains blocks of code that only apply to a single page. While you use buttons all over the site, your home page has a quote section and a project grid that isn’t used anywhere else. In other words, pages/ are rules specific to a single page and won't be reused elsewhere.
+- **themes/** is where you store thematic code, such as custom styling for Christmas or Halloween. This doesn't apply to the site we're creating. 
+- **vendors/**  is a directory for third-party library style sheets such as Bootstrap or jquery UI. It's essentially for any CSS that has originated from outside of the project. Using third party frameworks, such as Bootstrap, are common as they speed up site development with predefined style sheets for things like buttons and forms. 
+
+Inside `layouts/`, make a new partial named  `_form.scss`, then cut and paste the form block from `main.scss`. We must now import it into our main file to make use of it:
+```scss
+@import "./utils/variables";
+@import "./layouts/form";
+```
+Once all of the code has been split into proper partials and imported, the `main.scss` file should only contain imports; rule sets will be contained in their appropriate partials:
+```scss
+@import "./utils/variables";
+@import "./utils/functions";
+@import "./utils/mixins";
+@import "./utils/extensions";
+
+@import "./base/base";
+@import "./base/typography";
+
+@import "./components/buttons";
+
+@import "./layouts/header";
+@import "./layouts/nav";
+@import "./layouts/container";
+@import "./layouts/form";
+
+@import "./pages/work";
+@import "./pages/about";
+@import "./pages/project";
+```
+
+# Install SASS Locally and Run
+- Go to your folder with sass files.
+- Initiate a `npm package.json` file. `package.json`  is a file that stores info about your project: its name, version number, author, licensing info, external dependencies, and more importantly, short snippets of code to execute! Think of `package.json` as an instruction manual for npm to use to re-assemble and run the site.  Let’s create a package file by typing  `$ npm init`.
+- Install SASS: `$ npm install sass -g`
+
+To test that you’ve got Sass installed on your system, type  `sass --version`.
+
+Going back to the `package.json` file, you may have noticed a `"scripts"` object:
+```json
+{
+  "name": "writting-sass",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
+```
+This is where you’ll put your script to run Sass. 
+```json
+"scripts" : {
+    "sass": "sass --watch ./sass/main.scss:./css/style.css"
+  }
+```
+- `sass`  is telling npm where to look to find the script to execute.
+- `--watch`  is a flag that npm uses to look for any changes in the Sass file.  If it sees a change made, it will recompile and update the CSS file. Without the watch flag, you’d have to run the script every time you hit save. With the flag, it will automatically update as long as you have the script running in your terminal window.
+- `./sass/main.scss` is telling the script located in node-sass where to find the Sass file to compile.
+- A colon  `:`  separates the source path from the destination path.
+- `./css/style.css` tells the script where to compile the CSS to, and what to name it.
+
+Time to **run SASS** `$ npm run sass`. `npm` tells the command line that you want to execute a `npm` command.  `run` is the command. And  `sass` is the name of the script that you want to run.
+
+Now, as long as you don’t stop the process, either by typing `Ctrl+C` within the terminal, or clicking the trash can, **the script will wait and watch for any changes to compile**. 
+
+**Sass has four different compile modes, each rendering the CSS in a different fashion**. The first, and default, is what you’ve just seen: **Nested** mode. The second compile mode is called **expanded**. The third mode is **compact**. It renders the CSS with one ruleset per line. The fourth and final compile mode is **compressed**. When Sass compiles the CSS sheet in compressed mode, it removes any unnecessary whitespace and line breaks. This is also known as a **minified CSS** file. Enable modes:
+```json
+"scripts": {
+    "sass": "sass --watch ./sass/main.scss:./css/style.css --style compressed"
+},
+```
+
+# SASS Lists and Maps
+```css
+/*css*/
+.block { padding: 1rem 2rem 3rem 4rem; }
+```
+```scss
+$padding-dimensions: 1rem 2rem 3rem 4rem; /*list*/
+.block {
+    padding: $padding-dimensions;
+}
+```
+Lists allow you to group values together in a single variable.
+```scss
+$syntax-01: 1rem 2rem 3rem 4rem;
+$syntax-02: 1rem, 2rem, 3rem, 4rem;
+$syntax-03: (1rem 2rem 3rem 4rem);
+$syntax-04: (1rem, 2rem, 3rem, 4rem);
+```
+You can use values from list individually:
+```scss
+$font-size: 7rem 5rem 4rem 2rem;
+.form{
+    font-size: nth($font-size, 4); /* use the 2rem value from $font-size */
+}
+```
+Lists can be difficult to read and remember because there’s no real context to list contents; just values grouped together. That's why you have Sass **maps**! They are a lot like lists, but give each value a name in the form of **key/value pairs**:
+```scss
+$font-size: (logo:7rem, heading:5rem, project-heading:4rem, label:2rem);
+.form{
+    font-size: map-get($font-size, label);
+}
+```
+**The values in maps (and lists) can be any valid Sass data type, maps included.** 
+```scss
+$colour-primary: #15DEA5;
+$colour-secondary: #001534;
+$colour-white: #fff;
+$txt-input-palette: (
+    active: (
+        bg: $colour-primary,
+        txt: $colour-white,
+    ),
+    focus: (
+        bg: $colour-primary,
+        txt: $colour-white,
+    )
+);
+```
+# Mixin and map:
+```scss
+@mixin txt-input-palette($state) {
+    $palette: map-get($txt-input-palette, $state);
+    border: .1rem solid map-get($palette, border);
+    background-color: map-get($palette, bg);
+    color: map-get($palette, txt);
+}
+.form {
+    @include txt-input-palette(focus);
+}
+```
+# Loops
+```scss
+@mixin txt-input-palette($palettes) {
+    @each $state, $palette in $palettes{
+        &:#{$state}{
+            border: .1rem solid map-get($palette, border);
+            background-color: map-get($palette, bg);
+            color: map-get($palette, txt);
+        }
+    }
+}
+```
+# Responsive with SASS
+```scss
+.proj-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    @media (max-width: 599px) {
+        grid-template-columns: 1fr;
+    }
+}
+```
+
+To make things a bit more maintainable, let’s create a `$breakpoints` map to store our breakpoints in. Let’s add our mobile breakpoint value while we’re at it:
+```scss
+$breakpoints: (
+    mobile: 599px
+);
+@mixin mobile-only {
+    @media screen and (max-width: map-get($breakpoints, mobile)){
+        grid-template-columns: 1fr;
+    }
+}
+.proj-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    @include mobile-only;
+}
+```
+```css
+/*result css*/
+.proj-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+@media screen and (max-width: 599px) {
+  .proj-grid {
+    grid-template-columns: 1fr;
+  }
+}
+```
