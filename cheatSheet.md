@@ -405,3 +405,274 @@ Let’s say you decide that you want your first button to be outlined like the s
 <div class="btn btn--outline btn--disabled">Outline Button</div>
 ```
 Thanks to the **heightened specificity** of the outlined/disabled combo, **adding the same class in two situations produces two separate, but predictable results**.
+
+#### Variables
+Our site is using just a handful of colors. But we’re using them over and over again. Trying to remember hex values like `#16FFBD` and `#001534`, and what colors they represent doesn’t work. Instead, I scroll around my file, looking for another instance of that color, then copy and paste. This gets tedious, fast. And it’s dangerous. The client could request a color change out of the blue, and you now need to go through the file and update color values manually. This is where errors occur. Do you know what would make things so much easier and cleaner? **Setting a color once, and then referencing it** whenever you need to make something that color.
+
+To **declare a variable** in Sass, you type a dollar sign (**$**), followed its name, then a colon, and the value that you want it to have: 
+```scss
+$mint: #15DEA5;
+.form{ color: $mint;}
+```
+Note that **standard CSS also has variables**, though they’re called "**custom properties**".
+```css
+/*css*/
+:root { --mint: #15DEA5; }
+.form { color: var(--mint); }
+```
+
+A better approach would be to **name the variable by its role or purpose, rather than its contents**. Because:
+```scss
+$pink: pink;
+/* If we need change color from pink to red, variable $pink: red; looks strange*/ 
+```
+Instead of `$mint`/`$pink`, something like `$color-primary` makes a more sense. The variable name tells you that its role is to store your primary color, whether it be mint-green, pink, or vermilion. Plus, when you revisit your code months, or years later, `$color-primary` will still make sense. 
+
+There are eight data types in Sass:
+- **Color**s: we’ve already seen these!
+- **String**s: the programming term for text.
+- **Number**s: well, just that: numbers.
+- **List**s and **map**s: collections of any of the above.
+- And three you shouldn’t worry too much about now: **Boolean**, **Null**s, and **Function Reference**s.
+
+https://sass-lang.com/documentation/values
+
+#### Mixin
+```scss
+.heading__header { text-shadow: 0.55rem 0.55rem #fff; }
+$heading-shadow: text-shadow: 0.55rem 0.55rem #15DEA5; /*ERROR*/
+```
+Instead being limited to values, **mixins store entire blocks of code**.
+```scss
+@mixin mixin-name { css-property: value; }
+```
+```scss
+@mixin heading-shadow{
+    text-shadow: .55rem .55rem #15DEA5;
+}
+.form {
+    &__heading {
+        @include heading-shadow;
+    }
+}
+```
+```css
+/*result css*/
+.form__heading {
+    text-shadow: .55rem .55rem #15DEA5;
+}
+```
+Mixins will behave differently based on its **inputs**. `$colour` looks like a variable, right? That’s the **argument**. Think of arguments as empty variables that **only live within the mixin**. You set their value each time you include the mixin in your code, and that value is used within the mixin block when it is compiled to CSS:
+```scss
+@mixin heading-shadow($colour){
+    text-shadow: .55rem .55rem $colour;
+}
+ .heading{
+    &__header {
+        @include heading-shadow(#fff);
+    }
+ }
+```
+You can set the **default value for the argument**.  Now, if you omit the argument and don’t set a color value when you include it, Sass will assume that you want the shadow to be the default color.
+```scss
+@mixin heading-shadow($colour: $colour-primary){
+    text-shadow: .55rem .55rem $colour;
+}
+ .heading{
+    &__header {
+        @include heading-shadow($colour-white);
+    }
+ }
+ .form{
+    &__heading {
+        @include heading-shadow;
+    }
+ }
+```
+```scss
+$heading-shadow-size: 0.55rem;
+@mixin heading-shadow($colour: $colour-primary, $size: $heading-shadow-size;){
+    text-shadow: $size $size $colour;
+}
+```
+#### Extensions
+Mixin:
+```scss
+@mixin typography {
+    color: $colour-primary;
+    font-size: 2rem;
+    font-weight: 100;
+    line-height: 1.7;
+}
+h1 { @include typography; }
+textarea { @include typography; }
+```
+```css
+/*result css*/
+h1 {
+  color: #15dea5;
+  font-size: 2rem;
+  font-weight: 100;
+  line-height: 1.7;
+}
+textarea {
+  color: #15dea5;
+  font-size: 2rem;
+  font-weight: 100;
+  line-height: 1.7;
+}
+```
+Lot of duplicate code in CSS file! To avoid that use: **Extensions** are **a lot like mixins**: you **write a block of code and leverage Sass to reuse it**, saving you from retyping it over and over again. Unlike mixins, **you don’t need to declare it with a special identifier** - just write it as a simple selector:
+```scss
+.typography {
+    color: $colour-primary;
+    font-size: 2rem;
+    font-weight: 100;
+}
+h1 {
+  @extend .typography; /*TODO: openclassrooms have not dot for this string in example, but dot needed here*/
+}
+```
+```css
+/*result css*/
+.typography, h1 {
+    color: red;
+    font-size: 2rem;
+    font-weight: 100;
+}
+```
+Sure, you could rename `.typography` to something like `.placeholder-typography`, but **having selectors in your CSS file that aren’t actually being used anywhere is a bad idea**. Unused selectors needlessly increase file size, and clutter things up. Instead, **Sass has a built-in placeholder** that you can use to hold your ruleset, rather than a standard selector:
+```scss
+%typography {
+    color: $colour-primary;
+    font-size: 2rem;
+}
+h1 {
+  @extend %typography;
+}
+```
+Prefixing the selector with a percent sign (**%**), rather than the standard period of class selectors, creates a Sass **placeholder**. Also called “silent classes” and "placeholder classes".
+#### Mixins or Extensions ?
+You **use arguments or not**? **If you need to introduce any sort of argument, use mixins**; there’s no other choice.
+
+The difference between the two is that you end up with **duplicate rules** with mixins, and with extensions, you end up with **duplicate selectors**.
+
+Well, when it's put that way, the answer is actually pretty simple: **don’t use extensions**.
+
+Mixins produce a bunch of duplicate code! Yes, they do. But they don’t affect the organization of your CSS. Extensions destroy the order and predictability of your codebase to save you from repetitive code. It’s not worth it.
+
+#### Function
+They are pre-built blocks of code that perform tasks, such as taking an argument, changing it, then spitting out the new value. Sass has functions to desaturate,  invert, compliment, and even darken colors (among many other things).
+
+This function takes two arguments: a color value, and the amount that you want to darken it by. To darken `$colour-primary` for the `text-shadow`, use the function where you would normally place a color value:
+```scss
+@mixin heading-shadow($colour:$colour-primary, $size: $heading-shadow-size){
+        text-shadow: $size $size darken($colour, 10%);
+}
+```
+```css
+/*result css*/
+.form__heading { text-shadow: 0.55rem 0.55rem #11af82; }
+```
+Built-in fucntions: http://sass-lang.com/documentation/Sass/Script/Functions
+
+#### Conditionals
+Start by typing `@if`. Then follow it up with your conditional statement: the lightness percentage is less than 25% and a set of curly braces. To get the lightness of ` $colour`, we are using Sass'  `lightness()`  function, which returns the color's `lightness` value:
+```scss
+@if ( lightness($colour) < 25% ) {
+    $colour: lighten($colour, 10%);
+}@else{
+     $colour: darken($colour, 10%);
+}
+```
+```scss
+@mixin heading-shadow($colour: $colour-primary, $size: $heading-shadow-size){
+    @if ( lightness($colour) < 25% ) {
+      $colour: lighten($colour, 10%);
+    }
+    @else{
+      $colour: darken($colour, 10%);
+    }
+    text-shadow: $size $size $colour;
+}
+.form {
+    &__heading { @include heading-shadow($colour-secondary); }
+}
+```
+```css
+/*result css*/
+.form__heading { text-shadow: 0.55rem 0.55rem #002a67; }
+```
+
+```scss
+/*my variant to solve exercise*/
+@mixin hover($color) {
+  @if (hue($color)<180) {
+    background: adjust-hue($color, 50)
+  }
+  @else{
+    background: adjust-hue($color, -60);
+  }
+}
+.btn:hover{
+    @include hover($color-primary);
+}
+/*openclassrooms variant*/
+@mixin hover($color) {
+  @if (hue($color) < 180) {
+    $color: adjust-hue($color, 30);
+  }@else{
+    $color: adjust-hue($color, -60);
+  }
+  background: $color;
+}
+```
+Logical operators:
+```scss
+@if ( lightness($colour) < 25% ) and ( lightness($colour) > 10% {...}
+@if ( lightness($colour) < 25% ) or ( lightness($colour) > 10% {...}
+```
+
+#### Functions
+A function is a block of code that performs a task when executed, like darkening a color, or retrieving its lightness, or converting RGB values into hexadecimal:  `rgb(21, 222,165)`. That’s right, whenever you write your colors as `rgb()` in `.scss`, you’re calling a function. 
+
+**Define a function** by using the `@function` keyword, followed by its name, a pair of parentheses for arguments, and a set of curly braces to contain your code:
+```scss
+@function lightness-shift($colour){
+    @if ( lightness($colour) < 25% ) {
+        $colour: lighten($colour, 10%);
+    }@else{
+        $colour: darken($colour, 10%);
+    }
+}
+```
+Right now, the function only updates the `$colour` with a lighter or darker value. For `lightness-shift()` to return a value, you need to tell the function what you want it to return when it’s executed. 
+```scss
+@function lightness-shift($colour){
+    @if ( lightness($colour) < 25% ) {
+        @return lighten($colour, 10%);
+    }@else{
+        @return darken($colour, 10%);
+    }
+}
+```
+Now the function is done! Let’s plug it into our mixin, like when you call one of Sass' built-in functions:
+```scss
+@mixin heading-shadow($colour: lightness-shift($colour-primary), $size: $heading-shadow-size){
+    @if ( lightness($colour) < 25% ) {
+        $colour: lighten($colour, 10%);
+    }@else{
+        $colour: darken($colour, 10%);
+    }
+    text-shadow: $size $size $colour;
+}
+```
+```scss
+@function pastel($clr){
+  $hue: hue($clr);
+  $sat: 100%;
+  $light: 90%;
+  $pastel: hsl($hue, $sat, $light);
+  @return $pastel;
+}
+```
